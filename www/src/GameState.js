@@ -1,20 +1,51 @@
-//this game will have only 1 state
-var countOfBtnOnBottom = 6;
-var chatCountText = null;
-var personCountText = null;
-var chatDescriptionText = null;
-var personDescriptionText = null;
+var chatCountText;
+var personCountText;
+var chatDescriptionText;
+var personDescriptionText;
 
+var gameState;
 
-var gameState = null;
+var last_message_id;
+var last_message1;
+var last_message2;
+var lastChatView;
 
-var last_message_id = '';
-var last_message1 = '';
-var last_message2 = '';
-var lastChatView = null;
+var common;
+
 
 var GameState = {
+  
+  chatTimerEnable: false,
+
+  init: function() {
+    
+    gameState = this;
+    common = this.game.global;
+    this.initialize();
+
+    this.scale.scaleMode = Phaser.ScaleManager.SHOW_ALL;
+    this.scale.pageAlignHorizontally = true;
+    this.scale.pageAlignVertically = true;
+
+    this.game.kineticScrolling.configure({
+      verticalScroll: true,
+      horizontalScroll: true
+    });
+
+    chatCountText = null;
+    personCountText = null;
+    chatDescriptionText = null;
+    personDescriptionText = null;
+
+    last_message_id = null;
+    last_message1 = null;
+    last_message2 = null;
+    lastChatView = null;
+
+  },
+
   preload: function() {
+    
     this.game.load.nineSlice('building', 'assets/images/game/building.png', 0, 0, 0, 0);
     this.game.load.nineSlice('quest', 'assets/images/game/quest.png', 0, 0, 0, 0);
     this.game.load.nineSlice('items', 'assets/images/game/items.png', 0, 0, 0, 0);
@@ -26,18 +57,24 @@ var GameState = {
     this.game.load.nineSlice('crown', 'assets/images/game/crown.png', 0, 0, 0, 0);
 
     this.game.load.nineSlice('chat_description_background', 'assets/images/menu/menubar_background.png', 0);
+
   },
 
-  //executed after everything is loaded
   create: function() {
     this.background = this.game.add.sprite(0, 0, 'main_background');
     this.background.inputEnabled = true;
     this.background.events.onInputDown.add(this.clickedBackground, this);
 
-    gameState = this;
+    this.game.stage.backgroundColor = "#FFFFFF";
+
+    // Set screen scrolling
+    this.game.kineticScrolling.start();
+
+    //If you want change the default configuration after start the plugin
+    this.game.world.setBounds(0, 0, this.game.width, this.game.height);
+
     this.createBottomMenus();
-    this.game.global.gameChatTimer = true;
-    last_message_id = '';
+    this.chatTimerEnable = this.game.global.gameChatTimer.enable;
     this.getChat();
   },
 
@@ -48,13 +85,15 @@ var GameState = {
     this.createMenu(180.5, 594, 'guild', 55.8, 42, 'Guild', '', null, this.clickedGuild, 0, 0, null);
     this.createMenu(237.33, 594, 'mail', 55.8, 42, 'Mail', '', null, this.clickedMail, 0, 0, null);
     this.createMenu(294.17, 594, 'more', 55.8, 42, 'More', '', null, this.clickedMore, 0, 0, null);
-    this.createRectangle(10, 593, 340, 45, 2, 0x2b2c2e, 1);
+    this.createRectangle('Bottom', 10, 593, 340, 45, 2, 0x2b2c2e, 1);
 
     var graphics = this.game.add.graphics(0, 0);
     graphics.lineStyle(2, 0x000000, 0.8);
     graphics.moveTo(6, 555);
     graphics.lineTo(354, 555);
-    this.createRectangle(6, 560, 348, 30, 2, 0xa5b0ec, 1);
+    this['bottomLine'] = graphics;
+    this['bottomLine'].fixedToCamera = true;
+    this.createRectangle('ChatDescription', 6, 560, 348, 30, 2, 0xa5b0ec, 1);
 
     this.createMenu(320, 562, 'crown', 30, 30, 'Crown', '', null, this.clickedCrown, 0, 0, null);
   },
@@ -67,6 +106,8 @@ var GameState = {
       button.input.useHandCursor = true;
       button.events.onInputDown.add(callback, this);
     }
+    this['game' + name + 'Button'] = button;
+    this['game' + name + 'Button'].fixedToCamera = true;
 
     if (title !== null && title !== '') {
       var buttonTitle = this.game.add.text(0, 0, title, {
@@ -83,37 +124,42 @@ var GameState = {
       buttonTitle.y = button.height / 2 - buttonTitle.texture.height / 2 + 2;
       buttonTitle.inputEnabled = true;
       button.addChild(buttonTitle);
+      this['game' + name + 'Text'] = buttonTitle;
+      this['game' + name + 'Text'].fixedToCamera = true;
     }
 
     return button;
   },
 
   destroyMenu: function(name) {
-    this['profile' + name + 'Button'].destroy();
-    this['profile' + name + 'Text'].destroy();
+    this['game' + name + 'Button'].destroy();
+    this['game' + name + 'Text'].destroy();
   },
 
-  createRectangle: function (x, y, w, h, lineWidth, color, alpha) {
+  createRectangle: function (name, x, y, w, h, lineWidth, color, alpha) {
     var sprite = gameState.game.add.graphics(x, y);
     sprite.lineStyle(lineWidth, color, alpha);
     sprite.drawRect(0, 0, w, h);
+
+    this['game' + name + 'Rectangle'] = sprite;
+    this['game' + name + 'Rectangle'].fixedToCamera = true;
+
     return sprite;
   },
 
   clickedBackground: function() {
-    gameState.game.global.gameChatTimer = false;
-    last_message_id = '';
-    this.game.state.start('ChatState');
+//    gameState.initialize();
+//    this.game.state.start('CityState');
   },
 
   clickedChatDescription: function (sprite) {
-    gameState.game.global.gameChatTimer = false;
-    last_message_id = '';
+    this.initialize();
     this.game.state.start('ChatState');
   },
 
   clickedBuilding: function() {
-    alert('Building is clicked.');
+    this.initialize();
+    this.game.state.start('CityState');
   },
 
   clickedQuest: function() {
@@ -137,7 +183,8 @@ var GameState = {
   },
 
   clickedCrown: function() {
-    alert('Crown is clicked');
+    this.initialize();
+    this.game.state.start('ChatState');
   },
 
   setChatCountText: function(x, y, text) {
@@ -182,7 +229,7 @@ var GameState = {
   getChat: function() {
     $.ajax({ // this is a json object inside the function
       type: 'GET',
-      url: server_addr + '/get_messages/',
+      url: server_addr + 'get_messages/',
       dataType: "JSON",
         data: { 'session':
         {
@@ -193,7 +240,7 @@ var GameState = {
         }
       },
       success: function(result) {
-        if (gameState.game.global.gameChatTimer && result.status == 'Success') {
+        if (gameState.chatTimerEnable && result.status == 'Success') {
           // added new messages from result
           var new_messages = result.new_messages;
           if (new_messages.length > 0) {
@@ -221,8 +268,10 @@ var GameState = {
               boundsAlignV: 'middle'
             };
             lastChatView = gameState.game.add.text(10, 560, new_chat, chatViewStyle);
+            this['lastChatView'] = lastChatView;
+            this['lastChatView'].fixedToCamera = true;
           }
-          setTimeout(gameState.getChat, 5000);
+          setTimeout(gameState.getChat, gameState.game.global.gameChatTimer.interval);
         }
       },
       error: function(xhr) {
@@ -233,6 +282,10 @@ var GameState = {
         }
       }
     });
-  }
+  },
 
+  initialize: function() {
+    gameState.chatTimerEnable = false;
+    common.initializeState(gameState);
+  }
 };

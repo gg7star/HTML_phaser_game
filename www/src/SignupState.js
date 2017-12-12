@@ -8,7 +8,7 @@ var signupState = null;
 
 var SignupState = {
   preload: function() {
-    this.game.load.image('bg', 'assets/images/splash/background.jpg');
+    this.game.load.image('bg', 'assets/images/splash/background.png');
     this.game.load.nineSlice('input', 'assets/images/button/inputfield.png', 15);
     this.game.load.nineSlice('btn', 'assets/images/button/btn_clean.png', 20, 23, 27, 28);
     this.game.load.json('settings', 'config/settings.json');
@@ -17,6 +17,8 @@ var SignupState = {
     this.game.config.settings = this.game.cache.getJSON('settings');
     server_addr = this.game.config.settings.server;
     var background = this.game.add.sprite(0,0,'background');
+    background.width = this.world.width;
+    background.height = this.world.height;
     this.setStatusText('', '');
     //Here's the input field for the user's name
     var userBg = this.game.add.nineSlice(this.game.width / 2+ 5, 180, 'input', null, 200, 50);
@@ -92,7 +94,7 @@ var SignupState = {
 
         $.ajax({
           type: 'POST',
-          url: server_addr + '/register_user/',
+          url: server_addr + 'register_user/',
           dataType: "JSON",
           data: { 'user':
             {
@@ -122,16 +124,14 @@ var SignupState = {
       }
     });
 
-    var resetBtn = this.game.add.nineSlice(this.game.width / 2 + 10, 360, 'btn', null, 100, 70);
-    var reset = this.game.add.text(this.game.width / 2 + 35, 380, 'Reset', {
+    var loginBtn = this.game.add.nineSlice(this.game.width / 2 + 10, 360, 'btn', null, 100, 70);
+    var loginText = this.game.add.text(this.game.width / 2 + 38, 380, 'Login', {
       font: '18px Arial'
     });
-    resetBtn.inputEnabled = true;
-    resetBtn.input.useHandCursor = true;
-    resetBtn.events.onInputDown.add(function() {
-      user.resetText();
-      password.resetText();
-      confirmPassword.resetText();
+    loginBtn.inputEnabled = true;
+    loginBtn.input.useHandCursor = true;
+    loginBtn.events.onInputDown.add(function() {
+      signupState.game.state.start('LoginState');
     });
 
     PhaserInput.onKeyboardOpen.add(function () {

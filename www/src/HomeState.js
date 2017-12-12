@@ -6,6 +6,8 @@ var HomeState = {
   },
   create: function() {
     var background = this.game.add.sprite(0,0,'background');
+    background.width = this.world.width;
+    background.height = this.world.height;
     background.inputEnabled = true;
 
     // login button

@@ -27,14 +27,182 @@ var profile = {
     },
     playersScouted: null,
     troopsKilled: null
+  },
+
+  combatBoost: {
+    troopDefenseHPBonus: null,
+    troopAttackBonus: null
+  },
+
+  powers: {
+    buildPower: null,
+    troopPower: null,
+    trapPower: null,
+    researchPower: null,
+    heroPower: null,
+    questPower: null
   }
+};
+var new_profile = {
+  // userName: this.game.global.selectedUser,
+  gold: '32,169',
+  character: 'other',
+  character_border: 'other',
+  power: '70.2K',
+  vip: 'INACTIVE',
+  kills: '0',
+  powerDestroyed: '548',
+  monstersKilled: '2',
+  win: '0',
+  combatState: {
+    battles: {
+      won: 0,
+      lost: '343',
+      ratio: '0'
+    },
+    attacks: {
+      won: '0',
+      lost: '0'
+    },
+    defense: {
+      won: '0',
+      lost: '343'
+    },
+    playersScouted: '43',
+    troopsKilled: '137'
+  },
+
+  combatBoost: {
+    troopDefenseHPBonus: '+10',
+    troopAttackBonus: '+9'
+  },
+
+  powers: {
+    buildPower: 10,
+    troopPower: 20,
+    trapPower: 15,
+    researchPower: 17,
+    heroPower: 20,
+    questPower: 30
+  }
+};
+
+var middleTitleStyle = {
+  font: '11px Courier',
+  fontWeight: 'light',
+  fill: '#fff',
+  align: 'center',
+  boundsAlignH: 'center',
+  boundsAlignV: 'middle',
+  stroke: '#000',
+  strokeThickness: 4
+};
+
+var middleValueStyle = {
+  font: '18px Courier',
+  fontWeight: 'bold',
+  fill: '#fff',
+  align: 'center',
+  boundsAlignH: 'center',
+  boundsAlignV: 'middle',
+  stroke: '#000',
+  strokeThickness: 3
+};
+
+var middleWinTitleStyle = {
+  font: '16px Courier',
+  fontWeight: 'Bold',
+  fill: '#000',
+  align: 'center',
+  boundsAlignH: 'center',
+  boundsAlignV: 'middle'
+};
+
+var middleScoreHeaderStyle = {
+  font: '16px Courier',
+  fontWeight: 'Bold',
+  fill: '#fff',
+  align: 'center',
+  boundsAlignH: 'center',
+  boundsAlignV: 'middle',
+  stroke: '#000',
+  strokeThickness: 5
+};
+
+var middleScoreTitleStyle = {
+  font: '10px Courier',
+  fontWeight: 'light',
+  fill: '#fff',
+  align: 'center',
+  boundsAlignH: 'center',
+  boundsAlignV: 'middle',
+  stroke: '#000',
+  strokeThickness: 4
+};
+
+var goldTitleStyle = {
+  font: '11px Courier',
+  fontWeight: 'bold',
+  fill: '#000',
+  align: 'center',
+  boundsAlignH: 'center',
+  boundsAlignV: 'middle'
+};
+
+var goldValueStyle = {
+  font: '11px Courier',
+  fontWeight: 'Bold',
+  fill: '#000',
+  align: 'center',
+  boundsAlignH: 'center',
+  boundsAlignV: 'middle'
+};
+
+var middleScoreValueStyle = {
+  font: '11px Courier',
+  fontWeight: 'Bold',
+  fill: '#fff',
+  align: 'right',
+  boundsAlignH: 'right',
+  boundsAlignV: 'middle',
+  stroke: '#000',
+  strokeThickness: 4
+};
+
+var middleOverviewStyle = {
+  font: '18px Courier',
+  fontWeight: 'Bold',
+  fill: '#fff',
+  align: 'center',
+  boundsAlignH: 'center',
+  boundsAlignV: 'middle',
+  stroke: '#000',
+  strokeThickness: 4
+};
+
+var chatViewStyle = {
+  font: '11px Courier',
+  fontWeight: 'light',
+  fill: '#000',
+  align: 'left',
+  boundsAlignH: 'center',
+  boundsAlignV: 'middle'
 };
 
 var lastChatView = null;
 
-
+var previousState;
 
 var ProfileState = {
+
+  init: function(params) {
+    previousState = '';
+    if ((params !== null) && (typeof params !== 'undefined')) {
+      previousState = params.previousState;
+      console.log(previousState, params);
+    }
+  },
+
   preload: function() {
     // this.load.image('background', 'assets/images/profile/background.png');
 
@@ -46,6 +214,7 @@ var ProfileState = {
     this.game.load.nineSlice('my_character', 'assets/images/chat/my_character.png', 0);
     this.game.load.nineSlice('other_character_border', 'assets/images/chat/other_character_border.png', 0);
     this.game.load.nineSlice('other_character', 'assets/images/chat/other_character.png', 0);
+    this.game.load.nineSlice('my_profile_character', 'assets/images/avatar/default.png', 0);
 
     this.game.load.nineSlice('middle_button', 'assets/images/profile/middle_button.png', 0, 0, 0, 0);
 
@@ -60,6 +229,8 @@ var ProfileState = {
     this.game.load.nineSlice('crown', 'assets/images/game/crown.png', 0, 0, 0, 0);
 
     this.game.load.nineSlice('chat_description_background', 'assets/images/menu/menubar_background.png', 0, 0, 0, 0);
+
+    this.game.load.nineSlice('white', 'assets/images/building/whiteBackground.png', 0, 0, 0, 0);
   },
 
   //executed after everything is loaded
@@ -67,15 +238,21 @@ var ProfileState = {
     profileState = this;
 //    this.background = this.game.add.sprite(0, 0, 'background');
     this.game.stage.backgroundColor = "#fff";
+    this.createProfileOverview();
+    this.getProfile();
+
     this.createProfileTopMenus();
     this.createProfileCharacter();
     this.createProfileMiddleMenus();
-    this.createProfileOverview();
+
     this.createProfileBottomMenus();
     this.createRectangle(2, 60, 356, 578, 2, 0x2b2c2e, 0.7);
 
-    this.getProfile();
     this.getChat();
+
+    // Set screen scrolling
+    this.game.kineticScrolling.start();
+    this.game.world.setBounds(0, 0, this.game.width, 872);
   },
 
   createProfileTopMenus: function () {
@@ -85,7 +262,8 @@ var ProfileState = {
   },
 
   createProfileCharacter: function () {
-    profile.userName = this.game.add.text(0, 150, '[Tag] ' + this.game.global.selectedUser, {
+    var profileBackground = this.createMenu(0, 50, 'white', 360, 180, 'profileBackground', null, null, null, null, null);
+    var textObject = this.game.add.text(this.game.width / 2 - 30, 150, '[Tag]' + this.game.global.username, {
       font: '16px Courier',
       fontWeight: 'bold',
       fill: '#000',
@@ -94,15 +272,23 @@ var ProfileState = {
       boundsAlignV: 'middle'
 
     });
-    profile.userName.x = this.game.world.width / 2 - profile.userName.texture.width / 2;
+    textObject.inputEnabled = true;
+    profileState['UserNameText'] = textObject;
+    textObject.cameraOffset.x = this.game.width / 2 - textObject.texture.width / 2;
+    textObject.fixedToCamera = true;
+    profile.userName = textObject;
 
     if (this.game.global.selectedUser === this.game.global.username) {
       profile.character_border = this.createMenu(140, 70, 'my_character_border', 80, 75, 'character_border', '', null, null, 0, 0, null);
       profile.character = this.createMenu(150, 81, 'my_character', 60, 53, 'character', '', null, null, 0, 0, null);
+    } if ( previousState !== 'ChatState') {
+      profile.character_border = this.createMenu(140, 70, 'my_character_border', 80, 75, 'character_border', '', null, null, 0, 0, null);
+      profile.character = this.createMenu(150, 77.5, 'my_profile_character', 60, 60, 'character', this.game.global.username, null, null, 0, 0, null);      
     } else {
       profile.character_border = this.createMenu(140, 70, 'other_character_border', 80, 75, 'character_border', '', null, null, 0, 0, null);
       profile.character = this.createMenu(150, 90, 'other_character', 60, 35, 'character', '', null, null, 0, 0, null);
     }
+
   },
 
   createProfileMiddleMenus: function () {
@@ -121,6 +307,7 @@ var ProfileState = {
       button.input.useHandCursor = true;
       button.events.onInputDown.add(callback, this);
     }
+    button.fixedToCamera = true;
 
     if (title !== null && title !== '') {
       var buttonTitle = this.game.add.text(0, 0, title, {
@@ -151,102 +338,27 @@ var ProfileState = {
     var sprite = profileState.game.add.graphics(x, y);
     sprite.lineStyle(lineWidth, color, alpha);
     sprite.drawRect(0, 0, w, h);
+    sprite.fixedToCamera = true;
     return sprite;
   },
 
   createProfileOverview: function() {
-    var middleValueStyle = {
-      font: '18px Courier',
-      fontWeight: 'bold',
-      fill: '#fff',
-      align: 'center',
-      boundsAlignH: 'center',
-      boundsAlignV: 'middle',
-      stroke: '#000',
-      strokeThickness: 3
-    };
     this.createProfileGoldOverviewTitle();
     this.createProfileOverviewTitle();
   },
 
   createProfileGoldOverviewTitle: function() {
-    var goldTitleStyle = {
-      font: '11px Courier',
-      fontWeight: 'bold',
-      fill: '#000',
-      align: 'center',
-      boundsAlignH: 'center',
-      boundsAlignV: 'middle'
-    };
-    this.game.add.text(302, 15, 'GOLD', goldTitleStyle);
+    var goldTexture = this.game.add.text(302, 15, 'GOLD', goldTitleStyle);
+    goldTexture.fixedToCamera = true;
   },
 
   createProfileOverviewTitle: function() {
-    var middleTitleStyle = {
-      font: '11px Courier',
-      fontWeight: 'light',
-      fill: '#fff',
-      align: 'center',
-      boundsAlignH: 'center',
-      boundsAlignV: 'middle',
-      stroke: '#000',
-      strokeThickness: 4
-    };
-    var middleWinTitleStyle = {
-      font: '16px Courier',
-      fontWeight: 'Bold',
-      fill: '#000',
-      align: 'center',
-      boundsAlignH: 'center',
-      boundsAlignV: 'middle'
-    };
-    var middleScoreHeaderStyle = {
-      font: '16px Courier',
-      fontWeight: 'Bold',
-      fill: '#fff',
-      align: 'center',
-      boundsAlignH: 'center',
-      boundsAlignV: 'middle',
-      stroke: '#000',
-      strokeThickness: 5
-    };
-    var middleScoreTitleStyle = {
-      font: '10px Courier',
-      fontWeight: 'light',
-      fill: '#fff',
-      align: 'center',
-      boundsAlignH: 'center',
-      boundsAlignV: 'middle',
-      stroke: '#000',
-      strokeThickness: 4
-    };
-
     this.game.add.text(20, 260, 'Power', middleTitleStyle);
     this.game.add.text(123, 260, 'VIP', middleTitleStyle);
     this.game.add.text(236, 260, 'Kills', middleTitleStyle);
     this.game.add.text(20, 305, 'PowerDestroyed', middleTitleStyle);
     this.game.add.text(123, 305, 'MonstersKilled', middleTitleStyle);
     this.game.add.text(236, 303, 'Win %', middleWinTitleStyle);
-
-    this.game.add.text(20, 330, 'Combat Stats', middleScoreHeaderStyle);
-
-    var lineStartY = 360;
-    var graphics = this.game.add.graphics(0, 0);
-    graphics.lineStyle(1, 0x000000, 0.6);
-    graphics.moveTo(10,lineStartY);
-    var i = 0;
-    for (var i = 0; i < 9; i ++) {
-      graphics.moveTo(10, lineStartY + i * 20);
-      graphics.lineTo(350, lineStartY + i * 20);
-      if (i % 2 == 0) {
-        graphics.lineTo(350, lineStartY + (i + 1) * 20);
-      } else {
-        graphics.moveTo(10, lineStartY + i * 20);
-        graphics.lineTo(10, lineStartY + (i + 1) * 20);
-      }
-    }
-    graphics.moveTo(10, lineStartY + i * 20);
-    graphics.lineTo(350, lineStartY + i * 20);
 
     this.game.add.text(20, 362, 'Battles Won:', middleScoreTitleStyle);
     this.game.add.text(20, 382, 'Battles Lost:', middleScoreTitleStyle);
@@ -260,6 +372,7 @@ var ProfileState = {
   },
 
   createProfileBottomMenus: function() {
+    var bottomBackground = this.createMenu(0, 554, 'white', 360, 90, 'profileBackground', null, null, null, null, null);
     this.createMenu(10, 594, 'building', 55.8, 42, 'building', '', null, null, 0, 0, null);
     this.createMenu(66.83, 594, 'quest', 55.8, 42, 'quest', '', null, null, 0, 0, null);
     this.createMenu(123.67, 594, 'items', 55.8, 42, 'items', '', null, null, 0, 0, null);
@@ -272,60 +385,24 @@ var ProfileState = {
     graphics.lineStyle(2, 0x000000, 0.8);
     graphics.moveTo(6, 555);
     graphics.lineTo(354, 555);
+    graphics.fixedToCamera = true;
     this.createRectangle(6, 560, 348, 30, 2, 0xa5b0ec, 1);
   },
 
   clickedProfileMenu: function() {
-    profileState.game.state.start('ChatState');
+    profileState.game.state.start(previousState);
   },
 
   getProfile: function() {
     // polling. we will develop later
-    var new_profile = {
-      userName: this.game.global.selectedUser,
-      gold: '32,169',
-      character: 'other',
-      character_border: 'other',
-      power: '70.2K',
-      vip: 'INACTIVE',
-      kills: '0',
-      powerDestroyed: '548',
-      monstersKilled: '2',
-      win: '0',
-      combatState: {
-        battles: {
-          won: 0,
-          lost: '343',
-          ratio: '0'
-        },
-        attacks: {
-          won: '0',
-          lost: '0'
-        },
-        defense: {
-          won: '0',
-          lost: '343'
-        },
-        playersScouted: '43',
-        troopsKilled: '137'
-      }
-    };
-
     this.resetGoldOverview(new_profile);
     this.resetProfileOverview(new_profile);
     this.resetProfileScore(new_profile);
+    this.resetProfileScoreCombatBoosts(new_profile);
+    this.resetProfileScorePowers(new_profile);
   },
 
   resetGoldOverview: function(data) {
-    var goldValueStyle = {
-      font: '11px Courier',
-      fontWeight: 'Bold',
-      fill: '#000',
-      align: 'center',
-      boundsAlignH: 'center',
-      boundsAlignV: 'middle'
-    };
-
     if (profile.gold !== null) {
       profile.gold.destroy();
     }
@@ -334,18 +411,7 @@ var ProfileState = {
   },
 
   resetProfileOverview: function(data) {
-    var middleOverviewStyle = {
-      font: '18px Courier',
-      fontWeight: 'Bold',
-      fill: '#fff',
-      align: 'center',
-      boundsAlignH: 'center',
-      boundsAlignV: 'middle',
-      stroke: '#000',
-      strokeThickness: 4
-    };
-
-    if (profile.power !== null) {
+   if (profile.power !== null) {
       profile.power.destroy();
     }
     profile.power = this.game.add.text(20, 240, data.power, middleOverviewStyle);
@@ -374,79 +440,92 @@ var ProfileState = {
       profile.win.destroy();
     }
     profile.win = this.game.add.text(236, 285, data.win, middleOverviewStyle);
+
+  },
+
+  drawItemLines: function(lineStartY, count) {
+    // var lineStartY = 578;
+    var graphics = this.game.add.graphics(0, 0);
+    graphics.lineStyle(1, 0x000000, 0.6);
+    graphics.moveTo(10,lineStartY);
+    var i = 0;
+    for (var i = 0; i < count; i ++) {
+      graphics.moveTo(10, lineStartY + i * 20);
+      graphics.lineTo(350, lineStartY + i * 20);
+      if (i % 2 == 0) {
+        graphics.lineTo(350, lineStartY + (i + 1) * 20);
+      } else {
+        graphics.moveTo(10, lineStartY + i * 20);
+        graphics.lineTo(10, lineStartY + (i + 1) * 20);
+      }
+    }
+    graphics.moveTo(10, lineStartY + i * 20);
+    graphics.lineTo(350, lineStartY + i * 20);
+
   },
 
   resetProfileScore: function(data) {
-    var middleScoreValueStyle = {
-      font: '11px Courier',
-      fontWeight: 'Bold',
-      fill: '#fff',
-      align: 'right',
-      boundsAlignH: 'right',
-      boundsAlignV: 'middle',
-      stroke: '#000',
-      strokeThickness: 4
-    };
+    this.game.add.text(20, 330, 'Combat Stats', middleScoreHeaderStyle);
 
-    if (profile.combatState.battles.won !== null) {
-      profile.combatState.battles.won.destroy();
-    }
-    profile.combatState.battles.won = this.game.add.text(340, 363, data.combatState.battles.won, middleScoreValueStyle);
-    profile.combatState.battles.won.x = 345 - profile.combatState.battles.won.texture.width;
+    this.resetProfileScoreItem(profile.combatState.battles.won, data.combatState.battles.won, 340, 363);
+    this.resetProfileScoreItem(profile.combatState.battles.lost, data.combatState.battles.lost, 340, 383);
+    this.resetProfileScoreItem(profile.combatState.attacks.won, data.combatState.attacks.won, 340, 402);
+    this.resetProfileScoreItem(profile.combatState.attacks.lost, data.combatState.attacks.lost, 340, 422);
+    this.resetProfileScoreItem(profile.combatState.defense.won, data.combatState.defense.won, 340, 442);
+    this.resetProfileScoreItem(profile.combatState.defense.lost, data.combatState.defense.lost, 340, 462);
+    this.resetProfileScoreItem(profile.combatState.battles.ratio, data.combatState.battles.ratio, 340, 482);
+    this.resetProfileScoreItem(profile.combatState.playersScouted, data.combatState.playersScouted, 340, 502);
+    this.resetProfileScoreItem(profile.combatState.troopsKilled, data.combatState.troopsKilled, 340, 522);
 
-    if (profile.combatState.battles.lost !== null) {
-      profile.combatState.battles.lost.destroy();
-    }
-    profile.combatState.battles.lost = this.game.add.text(340, 382, data.combatState.battles.lost, middleScoreValueStyle);
-    profile.combatState.battles.lost.x = 345 - profile.combatState.battles.lost.texture.width;
+    this.drawItemLines(360, 9);
+  },
 
-    if (profile.combatState.attacks.won !== null) {
-      profile.combatState.attacks.won.destroy();
-    }
-    profile.combatState.attacks.won = this.game.add.text(340, 402, data.combatState.attacks.won, middleScoreValueStyle);
-    profile.combatState.attacks.won.x = 345 - profile.combatState.attacks.won.texture.width;
 
-    if (profile.combatState.attacks.lost !== null) {
-      profile.combatState.attacks.lost.destroy();
+  resetProfileScoreItem: function(uiItem, dataItem, x, y) {
+    if (uiItem != null) {
+      uiItem.destroy();
     }
-    profile.combatState.attacks.lost = this.game.add.text(300, 422, data.combatState.attacks.lost, middleScoreValueStyle);
-    profile.combatState.attacks.lost.x = 345 - profile.combatState.attacks.lost.texture.width;
+    uiItem = this.game.add.text(x, y, dataItem, middleScoreValueStyle);
+    uiItem.x = 345 - uiItem.texture.width;
+    uiItem.fixedToCamera = false;
+  },
 
-    if (profile.combatState.defense.won !== null) {
-      profile.combatState.defense.won.destroy();
-    }
-    profile.combatState.defense.won = this.game.add.text(340, 442, data.combatState.defense.won, middleScoreValueStyle);
-    profile.combatState.defense.won.x = 345 - profile.combatState.defense.won.texture.width;
+  resetProfileScoreCombatBoosts: function(data) {
+    this.game.add.text(20, 552, 'Combat Boosts', middleScoreHeaderStyle);
 
-    if (profile.combatState.defense.lost !== null) {
-      profile.combatState.defense.lost.destroy();
-    }
-    profile.combatState.defense.lost = this.game.add.text(340, 462, data.combatState.defense.lost, middleScoreValueStyle);
-    profile.combatState.defense.lost.x = 345 - profile.combatState.defense.lost.texture.width;
+    this.game.add.text(20, 582, 'Troop Defense HP Bonus:', middleScoreTitleStyle);
+    this.game.add.text(20, 602, 'Troop Attack Bonus:', middleScoreTitleStyle);
 
-    if (profile.combatState.battles.ratio !== null) {
-      profile.combatState.battles.ratio.destroy();
-    }
-    profile.combatState.battles.ratio = this.game.add.text(340, 482, data.combatState.battles.ratio, middleScoreValueStyle);
-    profile.combatState.battles.ratio.x = 345 - profile.combatState.battles.ratio.texture.width;
+    this.resetProfileScoreItem(profile.combatBoost.troopDefenseHPBonus, data.combatBoost.troopDefenseHPBonus, 340, 582);
+    this.resetProfileScoreItem(profile.combatBoost.troopAttackBonus, data.combatBoost.troopAttackBonus, 340, 602);
 
-    if (profile.combatState.playersScouted !== null) {
-      profile.combatState.playersScouted.destroy();
-    }
-    profile.combatState.playersScouted = this.game.add.text(340, 502, data.combatState.playersScouted, middleScoreValueStyle);
-    profile.combatState.playersScouted.x = 345 - profile.combatState.playersScouted.texture.width;
+    this.drawItemLines(579, 2);
+  },
 
-    if (profile.combatState.troopsKilled !== null) {
-      profile.combatState.troopsKilled.destroy();
-    }
-    profile.combatState.troopsKilled = this.game.add.text(340, 522, data.combatState.troopsKilled, middleScoreValueStyle);
-    profile.combatState.troopsKilled.x = 345 - profile.combatState.troopsKilled.texture.width;
+  resetProfileScorePowers: function(data) {
+    this.game.add.text(20, 632, 'Powers', middleScoreHeaderStyle);
+
+    this.game.add.text(20, 662, 'Build Power:', middleScoreTitleStyle);
+    this.game.add.text(20, 682, 'Troop Power:', middleScoreTitleStyle);
+    this.game.add.text(20, 702, 'Trap Power:', middleScoreTitleStyle);
+    this.game.add.text(20, 722, 'Research Power:', middleScoreTitleStyle);
+    this.game.add.text(20, 742, 'Hero Power:', middleScoreTitleStyle);
+    this.game.add.text(20, 762, 'Quest Power:', middleScoreTitleStyle);
+
+    this.resetProfileScoreItem(profile.powers.buildPower, data.powers.buildPower, 340, 662);
+    this.resetProfileScoreItem(profile.powers.troopPower, data.powers.troopPower, 340, 682);
+    this.resetProfileScoreItem(profile.powers.trapPower, data.powers.trapPower, 340, 702);
+    this.resetProfileScoreItem(profile.powers.researchPower, data.powers.researchPower, 340, 722);
+    this.resetProfileScoreItem(profile.powers.heroPower, data.powers.heroPower, 340, 742);
+    this.resetProfileScoreItem(profile.powers.questPower, data.powers.questPower, 340, 762);
+
+    this.drawItemLines(659, 6);
   },
 
   getChat: function() {
     $.ajax({ // this is a json object inside the function
       type: 'GET',
-      url: server_addr + '/get_messages/',
+      url: server_addr + 'get_messages/',
       dataType: "JSON",
       data: { 'session':
         {
@@ -470,16 +549,10 @@ var ProfileState = {
           if (lastChatView !== null) {
             lastChatView.destroy();
           }
-          var chatViewStyle = {
-            font: '11px Courier',
-            fontWeight: 'light',
-            fill: '#000',
-            align: 'left',
-            boundsAlignH: 'center',
-            boundsAlignV: 'middle'
-          };
+
           console.log(new_chat);
           lastChatView = profileState.game.add.text(10, 560, new_chat, chatViewStyle);
+          lastChatView.fixedToCamera = true;
         }
       }
     });

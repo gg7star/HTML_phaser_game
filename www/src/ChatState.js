@@ -20,7 +20,9 @@ var tween = null;
 var selectedUserName = '';
 
 var ChatState = {
+
   preload: function() {
+
     // load config file
     this.game.load.json('settings', 'config/settings.json');
     // load button images
@@ -36,9 +38,11 @@ var ChatState = {
     this.game.load.nineSlice('other_character_border', 'assets/images/chat/other_character_border.png', 0);
     this.game.load.nineSlice('other_character', 'assets/images/chat/other_character.png', 0);
     this.game.load.nineSlice('other_chat_bg', 'assets/images/chat/other_chat_bg.png', 0);
+
   },
 
   init: function() {
+
     this.scale.scaleMode = Phaser.ScaleManager.SHOW_ALL;
     this.scale.pageAlignHorizontally = true;
     this.scale.pageAlignVertically = true;
@@ -47,9 +51,11 @@ var ChatState = {
       verticalScroll: true,
       horizontalScroll: true
     });
+
   },
-  //executed after everything is loaded
+
   create: function() {
+
     if (!this.game.device.desktop) {
       PhaserInput.KeyboardOpen = true;
       PhaserInput.onKeyboardOpen.dispatch();
@@ -59,7 +65,7 @@ var ChatState = {
     server_addr = this.game.config.settings.server;
 
     chatState = this;
-    this.game.stage.backgroundColor = "#5E6B9B";
+    this.game.stage.backgroundColor = "#ffffff";
 
     ///////////////////////////////////
     // scrolling
@@ -111,9 +117,11 @@ var ChatState = {
     this.getChat();
     // create chatroom management menu
     this.createManagementWindow();
+
   },
 
   createTopMenu: function() {
+
     // create menu.
     this.createMenu(0, 0, 'menubar_background', 360, 45, 'TopBackground', '', null, 20, 20);
     this.createMenu(0, 0, 'prefix_menu', 65, 45, 'Prefix', '', this.clickedPrefixMenu, 20, 20);
@@ -123,9 +131,11 @@ var ChatState = {
     this.createMenu(295, 0, 'exit_menu', 65, 45, 'Exit', '', this.clickedExitMenu, 0, 0);
     // create title.
     this.createMenu(0, 45, 'chat_title', 360, 45, 'Title', this.game.global.username, null, 160, 17);
+
   },
 
   reCreateTopMenu: function() {
+
     this.destroyMenu('TopBackground');
     this.destroyMenu('Prefix');
     this.destroyMenu('Realm');
@@ -135,25 +145,31 @@ var ChatState = {
     this.destroyMenu('Title');
 
     this.createTopMenu();
+
   },
 
   createBottom: function() {
+
     // create chatting box
     this.createMenu(0, 580, 'menubar_background', 360, 60, 'BottomBackground', '', null, 0, 0);
     this.createChatEdit(10, 590, 'input', 260, 40, 'Input', '', null, 0, 0);
 
     this.createMenu(280, 590, 'chat_title', 70, 40, 'Enter', 'Enter', this.clickedEnterButton, 20, 15);
+
   },
 
   reCreateBottom: function() {
+
     this.destroyMenu('BottomBackground');
     this.destroyChatEdit('Input');
     this.destroyMenu('Enter');
 
     this.createBottom();
+
   },
 
   createMenu: function(x, y, imageName, width, height, name, text, callback, offsetX, offsetY) {
+
     var menuBtn = this.game.add.nineSlice(x, y, imageName, null, width, height);
     // set priority
     menuBtn.inputEnabled = true;
@@ -180,14 +196,18 @@ var ChatState = {
     this['chat' + name + 'Text'].fixedToCamera = true;
 
     return menuBtn;
+
   },
 
   destroyMenu: function(name) {
+
     this['chat' + name + 'Button'].destroy();
     this['chat' + name + 'Text'].destroy();
+
   },
 
   createChatEdit: function(x, y, imageName, width, height, name, placHolder, callback, offsetX, offsetY) {
+
     var chatBg = this.game.add.nineSlice(x, y, imageName, null, width, height);
     chatBg.inputEnabled = true;
     chatBg.input.priorityID = priorityID + 1;
@@ -218,50 +238,68 @@ var ChatState = {
     this['chat' + name + 'Edit'].fixedToCamera = true;
 
     return chat;
+
   },
 
   destroyChatEdit: function(name) {
+
     this['chat' + name + 'EditBackground'].destroy();
     this['chat' + name + 'Edit'].destroy();
+
   },
 
   clickedPrefixMenu: function() {
+
     alert('clicked prefix menu');
+
   },
 
   clickedRealmMenu: function() {
+
     alert('clicked Realm menu');
+
   },
 
   clickedGuildMenu: function() {
+
     alert('clicked Guild menu');
+
   },
 
   clickedCustomMenu: function() {
+
     alert('clicked Custom menu');
+
   },
 
   clickedExitMenu: function() {
+
     chatState.game.global.chattimer = false;
     chatState.game.state.start('GameState');
+
   },
 
   clickedOtherPerson: function() {
+
     selectedUserName = this.userName;
     console.log(selectedUserName);
     chatState.openManagerMenu();
+
   },
 
   clickedMe: function() {
+
     selectedUserName = this.userName;
     console.log(selectedUserName);
     chatState.game.global.chattimer = false;
 //    chatState.clickedCloseButton(selectedUserName);
     chatState.game.global.selectedUser = selectedUserName;
-    chatState.state.start('ProfileState');
+    chatState.state.start('ProfileState', true, false, {previousState: chatState.key});
+
   },
 
   createManagementWindow: function () {
+
     // You can drag the pop-up window around
     popup = chatState.game.add.nineSlice(0, 240,
               'menubar_background', null,
@@ -286,9 +324,11 @@ var ChatState = {
     popup.addChild(closeButton);
 
     popup.scale.set(0);
+
   },
   
   createManagementMenu: function (x, y, imageName, title, width, height, color, callback) {
+
     var button = chatState.game.add.nineSlice(x, y, imageName, null, width, height);
     button.inputEnabled = true;
     button.input.priorityID = 0;
@@ -305,25 +345,31 @@ var ChatState = {
     button.addChild(buttonTitle);
 
     return button;
+
   },
   
   openManagerMenu: function () {
+
     if ((tween !== null && tween.isRunning) || popup.scale.x === 1) {
       console.log(tween, popup.scale.x);
       return;
     }
     // Create a tween that will pop-open the window, but only if it's not already tweening or open
     tween = chatState.game.add.tween(popup.scale).to( { x: 1, y: 1 }, 1000, Phaser.Easing.Elastic.Out, true);
+
   },
 
   clickedViewProfileButton: function () {
+
     chatState.game.global.chattimer = false;
     chatState.clickedCloseButton(selectedUserName);
     chatState.game.global.selectedUser = selectedUserName;
     tween.onComplete.add(function() {chatState.state.start('ProfileState');}, this);
+
   },
 
   clickedBlockUserButton: function () {
+
     console.log('selectedUser = ' + selectedUserName);
     $.ajax({
       type: 'POST',
@@ -355,22 +401,28 @@ var ChatState = {
         }
       }
     });
+
   },
 
   clickedCloseButton: function () {
+
     if (tween && tween.isRunning || popup.scale.x === 0) {
       console.log('clicked Close button');
       return;
     }
     // Create a tween that will close the window, but only if it's not already tweening or closed
     tween = chatState.game.add.tween(popup.scale).to( { x: 0, y: 0 }, 1000, Phaser.Easing.Elastic.In, true);
+
   },
 
   clickedEnterButton: function() {
+
     chatState.sendMessage(chatState.chatInputEdit.value);
+
   },
 
   sendMessage: function (text) {
+
     $.ajax({
       type: 'POST',
       url: server_addr + '/send_message/',
@@ -392,15 +444,17 @@ var ChatState = {
       },
       error: function(xhr) {
         if (xhr.status == 200) {
-          alert(xhr.message);
+          console.log(xhr.message);
         } else {
-          alert(xhr.message);
+          console.log(xhr.message);
         }
       }
     });
+
   },
 
   update: function () {
+
     if (need_recreate) {
       console.log('reCreateBottom');
       var prev_chat = this.chatInputEdit.value;
@@ -416,17 +470,21 @@ var ChatState = {
 //      this.scroll.cameraY = this.game.camera.y;
 //      this.scroll.fixedToCamera = true;
 //    }
+
   },
 
   createRectangle: function (x, y, w, h) {
+
     var sprite = this.game.add.graphics(x, y);
     sprite.beginFill(Phaser.Color.getRandomColor(50, 255), 1);
     sprite.bounds = new PIXI.Rectangle(0, 0, w, h);
     sprite.drawRect(0, 0, w, h);
     return sprite;
+
   },
 
   createNewMessage: function (text, userName, createdTime) {
+
     var callback = null;
     var last_message = this.messages[message_index - 1];
     var new_message = {
@@ -547,9 +605,11 @@ var ChatState = {
     message_index ++;
 
     return new_message;
+
   },
 
   appendChat: function(text, userName, createdTime) {
+
     // create new chat
     var new_message = this.createNewMessage(text, userName, createdTime);
     var total_heights = new_message.background.y + new_message.background.height + chat_sapce;
@@ -560,9 +620,11 @@ var ChatState = {
     }
     this.game.camera.y = this.game.world.height - 640;
     need_recreate = true;
+
   },
 
   getChat: function() {
+
     $.ajax({ // this is a json object inside the function
       type: 'GET',
       url: server_addr + '/get_messages/',
@@ -600,6 +662,7 @@ var ChatState = {
         }
       }
     });
+    
   }
 
 };

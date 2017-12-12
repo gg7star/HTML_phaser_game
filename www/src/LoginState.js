@@ -8,13 +8,18 @@ var server_addr;
 var loginState;
 
 var LoginState = {
+
   preload: function() {
-    this.game.load.image('bg', 'assets/images/splash/background.jpg');
+
+    this.game.load.image('bg', 'assets/images/splash/background.png');
     this.game.load.nineSlice('input', 'assets/images/button/inputfield.png', 15);
     this.game.load.nineSlice('btn', 'assets/images/button/btn_clean.png', 20, 23, 27, 28);
     this.game.load.json('settings', 'config/settings.json');
+  
   },
+
   create: function() {
+
     if (!this.game.device.desktop) {
       PhaserInput.KeyboardOpen = true;
       PhaserInput.onKeyboardOpen.dispatch();
@@ -24,6 +29,8 @@ var LoginState = {
     server_addr = this.game.config.settings.server;
 
     var background = this.game.add.sprite(0,0,'background');
+    background.width = this.world.width;
+    background.height = this.world.height;
     this.setStatusText('', '');
     //Here's the input field for the user's name
     var userBg = this.game.add.nineSlice(this.game.width / 2 + 5, 180, 'input', null, 200, 50);
@@ -79,7 +86,7 @@ var LoginState = {
 
       $.ajax({
         type: 'POST',
-        url: server_addr + '/login_user/',
+        url: server_addr + 'login_user/',
         dataType: "JSON",
         data: { 'session':
           {
@@ -111,17 +118,16 @@ var LoginState = {
       });
     });
 
-    var resetBtn = this.game.add.nineSlice(this.game.width / 2 + 10, 360, 'btn', null, 100, 70);
-    var reset = this.game.add.text(this.game.width / 2 + 35, 380, 'Reset', {
+    var signupBtn = this.game.add.nineSlice(this.game.width / 2 + 10, 360, 'btn', null, 100, 70);
+    var signupText = this.game.add.text(this.game.width / 2 + 28, 380, 'Sign Up', {
       font: '18px Arial'
     });
-    resetBtn.inputEnabled = true;
-    resetBtn.input.useHandCursor = true;
-    resetBtn.events.onInputDown.add(function() {
-      user.resetText();
-      password.resetText();
+    signupBtn.inputEnabled = true;
+    signupBtn.input.useHandCursor = true;
+    signupBtn.events.onInputDown.add(function() {
+      loginState.game.state.start('SignupState');
     });
-
+    
     PhaserInput.onKeyboardOpen.add(function () {
       console.error("keyboard open", PhaserInput.KeyboardOpen)
     });
@@ -130,7 +136,9 @@ var LoginState = {
       console.error("keyboard close", PhaserInput.KeyboardOpen)
     });
   },
+
   setStatusText: function(title, content) {
+
     if (error_title != null && error_title.text != '') {
       error_title.destroy();
     }
@@ -143,5 +151,6 @@ var LoginState = {
     error_content = this.game.add.text(10, 50, content, {
         font: '14px Arial'
       });
+    
   }
 };
